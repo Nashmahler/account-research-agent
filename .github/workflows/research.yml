@@ -1,0 +1,68 @@
+name: Research an account
+
+on:
+  workflow_dispatch:
+    inputs:
+      company:
+        description: "Company name (e.g. Notion)"
+        required: true
+      domain:
+        description: "Company website (e.g. notion.com) for its own pages"
+        required: false
+      board:
+        description: "Optional job board override (e.g. ashby:notion, greenhouse:stripe)"
+        required: false
+      news_query:
+        description: "Optional custom news search, for names that are common words"
+        required: false
+      pitch:
+        description: "What you sell, in one sentence (leave blank for the default)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: research
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Research
+        id: research
+        continue-on-error: true   # a "no verified brief" result is still saved
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          COMPANY: ${{ inputs.company }}
+          DOMAIN: ${{ inputs.domain }}
+          BOARD: ${{ inputs.board }}
+          NEWS_QUERY: ${{ inputs.news_query }}
+          PITCH: ${{ inputs.pitch }}
+        run: |
+          args=("$COMPANY")
+          [ -n "$DOMAIN" ] && args+=(--domain "$DOMAIN")
+          [ -n "$BOARD" ] && args+=(--board "$BOARD")
+          [ -n "$NEWS_QUERY" ] && args+=(--news-query "$NEWS_QUERY")
+          [ -n "$PITCH" ] && args+=(--pitch "$PITCH")
+          python research.py "${args[@]}"
+
+      # Automated run output only. Nash's own commits are authored as Nash (see CLAUDE.md).
+      - name: Save brief
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898583+github-actions[bot]@users.noreply.github.com"
+          git add briefs
+          if git diff --cached --quiet; then echo "nothing to save"; exit 0; fi
+          git commit -m "brief: ${{ inputs.company }}"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
