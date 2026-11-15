@@ -19,11 +19,12 @@ All public. No logins, no scraping behind paywalls, no paid data APIs.
 1. **Sources are numbered.** The model gets the text it's allowed to use and nothing else.
 2. **One Claude call per account** (hard cap of 2 in code, for one retry). A brief costs pennies.
 3. **Everything is checked in code.** Each signal and opener must cite real source numbers and include a quote that appears in that source, word for word. Wrong number, wrong source, or a quote that isn't there: dropped, and the brief says what was dropped and why.
-4. **Openers must rest on a verified signal.** No "saw you're crushing it" lines with nothing behind them.
-5. **It fails closed.** If nothing verifies, the brief says "No verified brief today" instead of guessing.
-6. **Source text is treated as untrusted.** An instruction hidden in a web page can't add a claim, because the claim still has to quote a real source.
+4. **Numbers are checked too.** Every figure in a headline, opener, or summary ("$40M", "62%", "100 trillion") has to appear in the cited sources or in the hiring counts computed in code.
+5. **Openers must rest on a verified signal.** No "saw you're crushing it" lines with nothing behind them.
+6. **It fails closed.** If nothing verifies, the brief says "No verified brief today" instead of guessing.
+7. **Source text is treated as untrusted.** An instruction hidden in a web page can't add a claim, because the claim still has to quote a real source.
 
-The tests include deliberately fabricated quotes, made-up source numbers, a right quote cited to the wrong source, and a prompt-injection page. All have to be caught.
+The tests include deliberately fabricated quotes, a changed dollar figure, made-up source numbers, a right quote cited to the wrong source, and a prompt-injection page. All have to be caught.
 
 ## Run it
 
@@ -55,7 +56,7 @@ python research.py "Acme" --pitch "We sell spend management to finance teams."
 python -m pytest -q
 ```
 
-17 tests, no network and no API key needed.
+25 tests, no network and no API key needed.
 
 ## How it was built
 

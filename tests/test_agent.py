@@ -174,3 +174,31 @@ def test_cli_writes_brief_and_exit_code(tmp_path, monkeypatch):
     rc = research.main(["Acme", "--out", str(tmp_path)], llm=FakeLLM(reply()))
     files = list(tmp_path.glob("*-acme.md"))
     assert rc == 0 and len(files) == 1 and "Account brief: Acme" in files[0].read_text()
+
+
+def test_every_figure_must_appear_in_the_cited_sources():
+    r = reply(signals=[{"headline": "Raised $45M", "why_it_matters": "x", "sources": [1],
+                        "quote": "raises $40M to expand its AI support platform"}], openers=[])
+    c = verify.check(r, research_fixture().items)
+    assert not c.ok and "45m" in c.dropped[0]
+
+
+def test_figures_from_code_computed_hiring_counts_are_allowed():
+    res = research_fixture()
+    r = reply(openers=[{"text": "Congrats on the Europe launch. With 42 roles open, payments in Germany next?",
+                        "sources": [2], "quote": "starting with Germany and France"}])
+    assert len(verify.check(r, res.items, res.hiring).openers) == 1
+    assert verify.check(r, res.items).openers == []  # without the hiring counts, 42 is unbacked
+
+
+def test_unbacked_summary_is_dropped_not_shown():
+    c = verify.check(reply(summary="Acme has 10,000 customers."), research_fixture().items)
+    assert c.summary == "" and "summary" in c.dropped[0] and c.ok
+
+
+@pytest.mark.parametrize("text, expected", [
+    ("$40 million", {"40m"}), ("62% of Fortune 100", {"62%", "100"}), ("100 trillion tokens", {"100t"}),
+    ("in 2026 we grew", set()), ("$1,200", {"1200"}),
+])
+def test_number_normalization(text, expected):
+    assert verify.numbers(text) == expected

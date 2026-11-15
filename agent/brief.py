@@ -59,7 +59,7 @@ def run(research: Research, llm, pitch: str) -> tuple[Checked, str | None]:
     for attempt in range(2):
         try:
             reply = extract_json(llm.complete(SYSTEM, prompt, max_tokens=2000))
-            return check(reply, research.items), None
+            return check(reply, research.items, research.hiring), None
         except CapReached as e:
             return Checked(), str(e)
         except ValueError:
