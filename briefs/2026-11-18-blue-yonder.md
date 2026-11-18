@@ -1,0 +1,10 @@
+# Account brief: Blue Yonder
+*2026-11-18 · 16 sources read*
+
+**No verified brief today.**
+Reason: none of the proposed signals could be matched to a source quote.
+The agent only shows claims it can tie, word for word, to something it actually read.
+
+---
+Checks: 0 signals and 0 openers verified; 1 claims dropped for failing a source check.
+- Dropped: reply was not a JSON object
