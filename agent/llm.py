@@ -32,13 +32,18 @@ class Claude:
         return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
 
 
-def extract_json(text: str):
+def extract_json(text: str, want: type | None = None):
+    """First JSON value in a model reply. With `want`, skip values of the other type,
+    so a source number like "[3]" mentioned before the answer isn't taken as the answer."""
     text = re.sub(r"```(?:json)?", "", text)
     dec = json.JSONDecoder()
+    starts = "{" if want is dict else "[" if want is list else "{["
     for i, ch in enumerate(text):
-        if ch in "{[":
+        if ch in starts:
             try:
-                return dec.raw_decode(text[i:])[0]
+                val = dec.raw_decode(text[i:])[0]
             except json.JSONDecodeError:
                 continue
+            if want is None or isinstance(val, want):
+                return val
     raise ValueError("no JSON found in model reply")

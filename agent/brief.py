@@ -58,7 +58,7 @@ def run(research: Research, llm, pitch: str) -> tuple[Checked, str | None]:
     prompt = TASK.format(company=research.company, pitch=pitch, sources=format_sources(research))
     for attempt in range(2):
         try:
-            reply = extract_json(llm.complete(SYSTEM, prompt, max_tokens=2000))
+            reply = extract_json(llm.complete(SYSTEM, prompt, max_tokens=3000), want=dict)
             return check(reply, research.items, research.hiring), None
         except CapReached as e:
             return Checked(), str(e)

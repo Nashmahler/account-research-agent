@@ -202,3 +202,9 @@ def test_unbacked_summary_is_dropped_not_shown():
 ])
 def test_number_normalization(text, expected):
     assert verify.numbers(text) == expected
+
+
+def test_extract_json_skips_source_numbers_before_the_answer():
+    from agent.llm import extract_json
+    reply = 'Using sources [3] and [7]:\n{"signals": [], "openers": []}'
+    assert extract_json(reply, want=dict) == {"signals": [], "openers": []}
